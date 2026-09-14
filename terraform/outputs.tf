@@ -27,3 +27,8 @@ output "cloudfront_distribution_id" {
   description = "CloudFront distribution ID for the resume site."
   value       = aws_cloudfront_distribution.resume.id
 }
+
+output "visitor_counter_api_url" {
+  description = "HTTP API endpoint for the visitor counter."
+  value       = "${aws_apigatewayv2_api.visitor_counter.api_endpoint}/count"
+}
