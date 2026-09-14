@@ -32,3 +32,8 @@ output "visitor_counter_api_url" {
   description = "HTTP API endpoint for the visitor counter."
   value       = "${aws_apigatewayv2_api.visitor_counter.api_endpoint}/count"
 }
+
+output "github_actions_deploy_role_arn" {
+  description = "IAM role assumed by GitHub Actions via OIDC."
+  value       = aws_iam_role.github_actions_deploy.arn
+}
