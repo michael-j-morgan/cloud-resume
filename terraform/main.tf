@@ -95,3 +95,110 @@ resource "aws_s3_bucket_policy" "resume" {
   bucket = aws_s3_bucket.resume.id
   policy = data.aws_iam_policy_document.resume_bucket.json
 }
+
+resource "aws_dynamodb_table" "visitor_counter" {
+  name         = "cloud-resume-visitor-counter"
+  billing_mode = "PROVISIONED"
+
+  read_capacity  = 1
+  write_capacity = 1
+
+  hash_key = "id"
+
+  attribute {
+    name = "id"
+    type = "S"
+  }
+
+  tags = {
+    Project   = "cloud-resume"
+    ManagedBy = "terraform"
+  }
+}
+
+
+data "archive_file" "visitor_counter" {
+  type        = "zip"
+  source_file = "${path.module}/../lambda/visitor_counter.py"
+  output_path = "${path.module}/visitor_counter.zip"
+}
+
+data "aws_iam_policy_document" "lambda_assume_role" {
+  statement {
+    actions = ["sts:AssumeRole"]
+
+    principals {
+      type        = "Service"
+      identifiers = ["lambda.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "visitor_counter" {
+  name               = "cloud-resume-visitor-counter-lambda"
+  assume_role_policy = data.aws_iam_policy_document.lambda_assume_role.json
+
+  tags = {
+    Project   = "cloud-resume"
+    ManagedBy = "terraform"
+  }
+}
+
+data "aws_iam_policy_document" "visitor_counter_lambda" {
+  statement {
+    sid = "UpdateVisitorCounter"
+
+    actions = [
+      "dynamodb:UpdateItem",
+    ]
+
+    resources = [
+      aws_dynamodb_table.visitor_counter.arn,
+    ]
+  }
+
+  statement {
+    sid = "WriteLambdaLogs"
+
+    actions = [
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents",
+    ]
+
+    resources = [
+      "arn:aws:logs:${data.aws_region.current.region}:${data.aws_caller_identity.current.account_id}:*",
+    ]
+  }
+}
+
+resource "aws_iam_role_policy" "visitor_counter" {
+  name   = "cloud-resume-visitor-counter"
+  role   = aws_iam_role.visitor_counter.id
+  policy = data.aws_iam_policy_document.visitor_counter_lambda.json
+}
+
+resource "aws_lambda_function" "visitor_counter" {
+  function_name = "cloud-resume-visitor-counter"
+
+  role    = aws_iam_role.visitor_counter.arn
+  handler = "visitor_counter.handler"
+  runtime = "python3.13"
+
+  filename         = data.archive_file.visitor_counter.output_path
+  source_code_hash = data.archive_file.visitor_counter.output_base64sha256
+
+  memory_size = 128
+  timeout     = 3
+
+  environment {
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.visitor_counter.name
+    }
+  }
+
+  tags = {
+    Project   = "cloud-resume"
+    ManagedBy = "terraform"
+  }
+}

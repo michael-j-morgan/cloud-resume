@@ -1,0 +1,12 @@
+# Terraform local state
+*.tfstate
+*.tfstate.*
+
+# Terraform working directory
+.terraform/
+
+# Generated archives
+*.zip
+
+# Local backups
+*.bak
