@@ -5,7 +5,33 @@ of the Cloud Resume Challenge.
 
 ## Architecture
 
-[diagram goes here]
+````mermaid
+flowchart TD
+    User["Visitor"]
+
+    CF["Amazon CloudFront"]
+    S3["Private Amazon S3"]
+    API["Amazon API Gateway"]
+    Lambda["AWS Lambda"]
+    DDB["Amazon DynamoDB"]
+
+    GitHub["GitHub"]
+    Actions["GitHub Actions"]
+    OIDC["GitHub OIDC"]
+    IAM["AWS IAM Deploy Role"]
+
+    User -->|HTTPS| CF
+    CF -->|Origin Access Control| S3
+
+    User -->|Visitor counter request| API
+    API --> Lambda
+    Lambda -->|Atomic update| DDB
+
+    GitHub -->|Push to master| Actions
+    Actions --> OIDC
+    OIDC -->|Assume role| IAM
+    IAM -->|Sync site| S3
+    IAM -->|Invalidate cache| CF
 
 The site uses:
 
@@ -73,7 +99,7 @@ The workflow:
 1.authenticates to AWS through GitHub OIDC
 1.synchronizes site/ to S3
 1.creates a CloudFront invalidation
-1.Local Development
+Local Development
 
 TBD
 
@@ -84,4 +110,4 @@ TBD
 ### What I Learned
 
 TBD
-```
+````
