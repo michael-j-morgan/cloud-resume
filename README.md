@@ -100,12 +100,34 @@ The workflow:
 1.synchronizes site/ to S3
 1.creates a CloudFront invalidation
 Local Development
+Terraform uses the `resume-challenge` AWS CLI profile with temporary credentials. If the session expires, reauthenticate with:
 
+```bash
+aws login --profile resume-challenge
 TBD
 
 ### Infrastructure
 
-TBD
+AWS infrastructure is managed with Terraform under [`terraform/`](terraform/).
+
+Terraform manages the supporting cloud resources, while static site content is deployed separately through GitHub Actions or the local deployment script.
+
+The current infrastructure includes:
+
+- A private Amazon S3 bucket for static site content
+- An Amazon CloudFront distribution with Origin Access Control
+- An Amazon DynamoDB table for visitor-count persistence
+- An AWS Lambda function for the visitor counter
+- An Amazon API Gateway HTTP API exposing the counter endpoint
+- IAM roles and policies using least-privilege permissions
+- A GitHub OpenID Connect provider and deployment role for keyless CI/CD
+
+### Terraform Workflow
+
+Initialize the working directory:
+
+```bash
+terraform -chdir=terraform init
 
 ### What I Learned
 
