@@ -1,5 +1,3 @@
-const counterElement = document.getElementById("visitor-count");
-
 fetch("https://hztts5vqqk.execute-api.us-east-2.amazonaws.com/count")
     .then((response) => {
         if (!response.ok) {
@@ -9,9 +7,10 @@ fetch("https://hztts5vqqk.execute-api.us-east-2.amazonaws.com/count")
         return response.json();
     })
     .then((data) => {
-        counterElement.textContent = data.visits;
+        document.body.appendChild(
+            document.createComment(` Visitor count: ${data.visits} `)
+        );
     })
     .catch((error) => {
-        console.error("Unable to load visitor count:", error);
-        counterElement.textContent = "unavailable";
+        console.error("Unable to record site visit:", error);
     });
