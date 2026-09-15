@@ -131,5 +131,20 @@ terraform -chdir=terraform init
 
 ### What I Learned
 
-TBD
+## What I Learned
+content.
+- **Prefer temporary credentials.** Local AWS access uses temporary login sessions, while GitHub Actions uses OIDC to assume a deployment role. No long-lived AWS access keys are required.
+- **Least privilege is easier when responsibilities are narrow.** The Lambda role can update only the visitor-counter table, while the GitHub deployment role can only publish site content and invalidate CloudFront.
+- **Atomic operations matter even in small projects.** The visitor counter uses a DynamoDB atomic update instead of a read-modify-write sequence, avoiding race conditions.
+- **Separate infrastructure from application deployment.** Terraform manages AWS resources, while normal site updates are deployed independently through GitHub Actions.
+- **Reviewing plans is part of the workflow.** Each infrastructure change was validated with `terraform fmt`, `terraform validate`, and `terraform plan` before applying it.
+
+The Cloud Resume Challenge turned out to be less about building a resume page and more about connecting infrastructure, security, application code, deployment automation, and cost awareness into one coherent system.
+This project reinforced that the interesting part of cloud engineering is often not creating resources, but understanding the boundaries around them.
+
+A few lessons stood out:
+
+- **Validate assumptions early.** I checked local tooling, AWS identity, account type, Free Tier behavior, and Terraform plans before provisioning resources. That caught several issues before they became expensive or difficult to unwind.
+- **Free Tier does not automatically mean zero cost.** Service pricing, account-plan behavior, logging, DNS, public IPs, and optional features all need to be evaluated independently.
+- **Keep public access at the edge.** The S3 bucket remains private, with CloudFront Origin Access Control providing the only read path for site
 ````
